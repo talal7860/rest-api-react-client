@@ -1,5 +1,14 @@
-This example was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Example app to display github repositories
 
-It is linked to the rest-api-react-client package in the parent directory for development purposes.
+## Getting Started
 
-You can run `yarn install` and then `yarn start` to test your package.
+```shell
+$ yarn install
+$ yarn start
+$ echo 'ACCESS_TOKEN_EXCHANGE_SERVER=https://localhost:3001' > .env
+```
+
+### Setup Github OAUTH app
+Following instructions here: https://docs.github.com/en/free-pro-team@latest/developers/apps/creating-an-oauth-app
+
+Once you have the client id and secret, save those somewhere safe, and enter them in the app to fetch repostories.

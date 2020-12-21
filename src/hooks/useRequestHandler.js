@@ -1,20 +1,27 @@
 import { useEffect, useState } from 'react';
-import { get } from 'lodash/fp';
+import { get, getOr } from 'lodash/fp';
 import useApiClient from './useApiClient';
 
-const useRequestHandler = (path, method, options = {}) => {
+const useRequestHandler = (path, options = {}) => {
   const { cacheKey, data, setData } = useApiClient();
+  const method = getOr('GET', 'method', options);
   const [loading, setLoading] = useState(options.loading || false);
   const [error, setError] = useState(null);
-  const key = cacheKey(path, {
+  const key = cacheKey(`${getOr('', 'baseUrl')(options)}${path}`, {
     params: options.params,
+    query: options.query,
     method,
   });
 
   const request = (callback) => {
     setLoading(true);
     callback().then((res) => {
-      setData({ [key]: res.data });
+      if (res.status < 200 || res.status >= 299) {
+        setError(res);
+        setLoading(false);
+      } else {
+        setData({ [key]: res.data });
+      }
     }).catch((err) => {
       setError(err.message);
       setLoading(false);

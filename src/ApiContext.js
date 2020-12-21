@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import Client from '../Client';
+import Client from './Client';
 
 const ApiContext = React.createContext({});
 

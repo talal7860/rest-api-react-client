@@ -1,32 +1,8 @@
-import { getOr, merge } from 'lodash/fp';
-import useApiClient from './useApiClient';
-import useRequestHandler from './useRequestHandler';
+import useRequest from './useRequest';
 
-const getParams = getOr({}, 'params');
-
-const useLazyGet = (path, options = {}) => {
-  const { fetchClient } = useApiClient();
-  const {
-    loading, request, error, data,
-  } = useRequestHandler(path, 'GET', options);
-  useRequestHandler(options);
-
-  const fetchMore = (fetchOptions) => {
-    request(() => fetchClient.get({
-      path,
-      local: options.local,
-      query: {
-        ...getParams(merge(options, fetchOptions)),
-      },
-      json: true,
-    }));
-  };
-
-  return [
-    fetchMore, {
-      loading, data, error, fetchMore,
-    },
-  ];
-};
+const useLazyGet = (path, options = {}) => useRequest(path, {
+  ...options,
+  method: 'GET',
+});
 
 export default useLazyGet;

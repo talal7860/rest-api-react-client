@@ -6,7 +6,7 @@ import {
 } from './hooks';
 
 import Client from './Client';
-import { ApiProvider } from './contexts';
+import { ApiProvider } from './ApiContext';
 
 export {
   useApiClient,

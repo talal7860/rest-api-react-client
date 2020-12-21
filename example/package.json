@@ -10,10 +10,12 @@
     "eject": "node ../node_modules/react-scripts/bin/react-scripts.js eject"
   },
   "dependencies": {
+    "query-string": "^6.13.7",
     "react": "link:../node_modules/react",
     "react-dom": "link:../node_modules/react-dom",
     "react-scripts": "link:../node_modules/react-scripts",
     "rest-api-react-client": "link:..",
+    "universal-cookie": "^4.0.4",
     "web-vitals": "^1.0.1"
   },
   "devDependencies": {

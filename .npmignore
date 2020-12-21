@@ -1,0 +1,10 @@
+npm-debug.log
+*.log
+build
+.eslintcache
+.DS_Store
+example
+src
+.eslintrc
+.npmrc
+yarn-error.log

@@ -3,10 +3,33 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { ApiProvider, Client } from 'rest-api-react-client';
+import { accessTokenKey } from './constants';
+
+
+const authroizationHeaders = () => {
+  const token = window.sessionStorage.getItem(accessTokenKey);
+  if (!token) {
+    return {};
+  }
+  return {
+    Authorization: `token ${window.sessionStorage.getItem(accessTokenKey)}`
+  };
+}
+
+const client = new Client('https://api.github.com', {
+  headers: () => ({
+    ...authroizationHeaders(),
+    Accept: 'application/vnd.github.v3+json',
+    'content-type': 'application/json',
+  }),
+});
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <ApiProvider client={client}>
+      <App />
+    </ApiProvider>
   </React.StrictMode>,
   document.getElementById('root')
 );

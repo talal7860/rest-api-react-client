@@ -1,0 +1,20 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "talal7860",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "start": "node index.js",
+    "predeploy": "heroku container:push -a ${HEROKU_APP} web",
+    "deploy": "heroku container:push -a ${HEROKU_APP} web"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "fastify": "^3.9.2",
+    "middie": "^5.2.0",
+    "node-fetch": "^2.6.1"
+  }
+}

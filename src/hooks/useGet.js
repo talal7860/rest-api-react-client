@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { getOr } from 'lodash/fp';
 import useLazyGet from './useLazyGet';
 
-const getParams = getOr({}, 'params');
+const getParams = getOr({}, 'query');
 
 const useGet = (path, options = {}) => {
   const [fetch, {

@@ -1,5 +1,5 @@
-import { useContext } from 'react';
-import ApiContext from '../contexts';
+import { useContext, useEffect } from 'react';
+import ApiContext from '../ApiContext';
 
 const useApiClient = () => {
   const { value, setValue, client } = useContext(ApiContext);
@@ -15,6 +15,12 @@ const useApiClient = () => {
     params,
     method,
   });
+
+  useEffect(() => {
+    if (!client) {
+      throw new Error('Client not set, make sure the hooks are called insider the provider');
+    }
+  }, [client]);
 
   const resetData = () => setValue({});
 
