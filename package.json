@@ -1,6 +1,6 @@
 {
   "name": "rest-api-react-client",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Rest api react client for functional react components",
   "author": "talal7860",
   "license": "MIT",
@@ -8,9 +8,6 @@
   "main": "dist/index.js",
   "module": "dist/index.modern.js",
   "source": "src/index.js",
-  "engines": {
-    "node": ">=12"
-  },
   "scripts": {
     "build": "microbundle-crl --no-compress --format modern,cjs",
     "start": "microbundle-crl watch --no-compress --format modern,cjs",
