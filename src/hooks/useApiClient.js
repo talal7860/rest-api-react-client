@@ -1,5 +1,6 @@
 import { useContext, useEffect } from 'react';
 import ApiContext from '../ApiContext';
+import { cacheKey } from '../util';
 
 const useApiClient = () => {
   const { value, setValue, client } = useContext(ApiContext);
@@ -9,12 +10,6 @@ const useApiClient = () => {
       ...data,
     });
   };
-
-  const cacheKey = (path, { params, method }) => JSON.stringify({
-    path,
-    params,
-    method,
-  });
 
   useEffect(() => {
     if (!client) {
@@ -35,7 +30,7 @@ const useApiClient = () => {
     setData,
     resetData,
     writeData,
-    fetchClient: client,
+    client,
   };
 };
 

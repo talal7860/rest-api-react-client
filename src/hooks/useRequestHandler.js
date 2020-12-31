@@ -1,28 +1,36 @@
 import { useEffect, useState } from 'react';
-import { get, getOr } from 'lodash/fp';
+import { get, isEmpty } from 'lodash/fp';
 import useApiClient from './useApiClient';
+import { cacheKey, canUseCache, isNetworkError } from '../util';
+import NETWORK_STATUS from '../constants/networkStatus';
 
-const useRequestHandler = (path, options = {}) => {
-  const { cacheKey, data, setData } = useApiClient();
-  const method = getOr('GET', 'method', options);
+const useRequestHandler = (path, requestOptions = {}) => {
+  const {
+    data, setData, client,
+  } = useApiClient();
+  const [networkStatus, setNetworkStatus] = useState(NETWORK_STATUS.initial);
+  const [options, setOptions] = useState(requestOptions);
   const [loading, setLoading] = useState(options.loading || false);
   const [error, setError] = useState(null);
-  const key = cacheKey(`${getOr('', 'baseUrl')(options)}${path}`, {
-    params: options.params,
-    query: options.query,
-    method,
-  });
+  const key = cacheKey(path, options);
+  const cacheData = get(key)(data);
 
-  const request = (callback) => {
+  const request = () => {
+    if (canUseCache(options) && !isEmpty(cacheData)) {
+      return;
+    }
+    setNetworkStatus(NETWORK_STATUS.started);
     setLoading(true);
-    callback().then((res) => {
-      if (res.status < 200 || res.status >= 299) {
-        setError(res);
+    client.request(options).then((res) => {
+      if (isNetworkError(res.status)) {
+        setError(res.data);
         setLoading(false);
+        setNetworkStatus(NETWORK_STATUS.completed);
       } else {
         setData({ [key]: res.data });
       }
     }).catch((err) => {
+      setNetworkStatus(NETWORK_STATUS.completed);
       setError(err.message);
       setLoading(false);
     });
@@ -31,12 +39,19 @@ const useRequestHandler = (path, options = {}) => {
   useEffect(() => {
     if (loading) {
       setLoading(false);
-      if (options.onCompleted) {
-        options.onCompleted(data[key]);
+      if (options.onCompleted && cacheData) {
+        options.onCompleted(cacheData);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, key]);
+  }, [cacheData]);
+
+  useEffect(() => {
+    if (canUseCache(options, cacheData) && !isEmpty(cacheData) && options.onCompleted) {
+      options.onCompleted(cacheData);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cacheData]);
 
   useEffect(() => {
     if (error && options.onError) {
@@ -45,12 +60,23 @@ const useRequestHandler = (path, options = {}) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [error]);
 
+  useEffect(() => {
+    if (options !== requestOptions) {
+      request();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options]);
+
   return {
     cacheKey: key,
-    request,
+    options,
+    setOptions,
     loading,
     error,
-    data: get(key, data),
+    data: cacheData,
+    networkStatus,
+    setNetworkStatus,
+    setLoading,
   };
 };
 
