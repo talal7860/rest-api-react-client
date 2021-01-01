@@ -1,5 +1,7 @@
 import queryString from 'query-string';
 import { getOr } from 'lodash/fp';
+import { isNetworkError } from './util';
+import RequestError from './errors/RequestError';
 
 const JSON_ACCEPT_HEADERS = Object.freeze([
   'application/json',
@@ -17,6 +19,7 @@ class Client {
       referrerPolicy: 'no-referrer',
     };
     this.response = this.response.bind(this);
+    this.request = this.request.bind(this);
   }
 
   getHeaders(json = false) {
@@ -34,21 +37,26 @@ class Client {
   async request({
     path, query, body, json, baseUrl, method,
   }) {
-    const url = queryString.stringifyUrl({
-      url: `${baseUrl || this.baseUrl}${path}`,
-      query,
-    });
-    try {
-      const res = await fetch(url, {
+    return new Promise((resolve, reject) => {
+      const url = queryString.stringifyUrl({
+        url: `${baseUrl || this.baseUrl}${path}`,
+        query,
+      });
+      fetch(url, {
         ...this.options,
         method,
         headers: this.getHeaders(json),
         body: JSON.stringify(body),
+      }).then((res) => {
+        if (isNetworkError(res.status)) {
+          reject(new RequestError(this.response(res)));
+        } else {
+          resolve(this.response(res));
+        }
+      }).catch((e) => {
+        reject(new RequestError({ data: e.message, status: 500, statusText: 'Internal server error' }));
       });
-      return this.response(res);
-    } catch (e) {
-      return { data: e.message, status: 500, statusText: 'Internal server error' };
-    }
+    });
   }
 
   async response(res) {
