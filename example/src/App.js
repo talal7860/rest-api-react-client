@@ -1,9 +1,20 @@
-import { usePost, useLazyGet } from 'rest-api-react-client';
-import { isEmpty } from 'lodash/fp';
+import { usePost } from 'rest-api-react-client';
 import queryString from 'query-string';
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+} from "react-router-dom";
 import './App.css';
-import { useState, useEffect } from 'react';
-import { accessTokenKey, callbackUrl, perPage } from './constants';
+import { useState, useEffect, lazy, Suspense } from 'react';
+import { accessTokenKey, callbackUrl } from './constants';
+import Navigation from './components/Navigation';
+const ReposWithLazyGet = lazy(() => import('./pages/ReposWithLazyGet'));
+const ReposWithNetworkPolicy = lazy(() => import('./pages/ReposWithNetworkPolicy'));
+const ReposWithCache = lazy(() => import('./pages/ReposWithCache'));
+const ReposWithWallFeed = lazy(() => import('./pages/ReposWithWallFeed'));
+
+console.log('process.env.ACCESS_TOKEN_EXCHANGE_SERVER', process.env.REACT_APP_ACCESS_TOKEN_EXCHANGE_SERVER);
 
 const App = () => {
   const [params, setParams] = useState({
@@ -19,19 +30,10 @@ const App = () => {
       [e.target.name]: e.target.value,
     });
   };
-  const [page, setPage] = useState(1);
-
-  const onNext = () => {
-    setPage(page + 1);
-  }
-
-  const onPrevious = () => {
-    setPage(page - 1);
-  }
 
   const [getAccessToken, { loading }] = usePost('/github_access_token', {
     json: true,
-    baseUrl: process.env.ACCESS_TOKEN_EXCHANGE_SERVER,
+    baseUrl: process.env.REACT_APP_ACCESS_TOKEN_EXCHANGE_SERVER,
     onCompleted(res) {
       if (res.access_token) {
         window.sessionStorage.setItem(accessTokenKey, res.access_token);
@@ -39,24 +41,25 @@ const App = () => {
       window.location.href = window.location.pathname.replace('callback', '');
     },
     onError(err) {
+      console.log(err.data);
       alert(err.data);
       window.location.href = window.location.pathname.replace('callback', '');
     }
   });
 
-  const [fetchRepos, { loading: reposLoading, data: userRepos }] = useLazyGet('/user/repos', {
-    json: true,
-    query: {
-      per_page: perPage,
-    },
-    onError(err) {
-      alert(err.data)
-      if (err.status === 401) {
-        window.sessionStorage.clear();
-        window.location.reload();
-      }
-    }
-  });
+  // const [fetchRepos, { loading: reposLoading, data: userRepos }] = useLazyGet('/user/repos', {
+  //   json: true,
+  //   query: {
+  //     per_page: perPage,
+  //   },
+  //   onError(err) {
+  //     alert(err.data)
+  //     if (err.status === 401) {
+  //       window.sessionStorage.clear();
+  //       window.location.reload();
+  //     }
+  //   }
+  // });
 
   const onSubmit = (e) => {
     e.preventDefault();
@@ -85,41 +88,61 @@ const App = () => {
     }
   }, []);
 
-  useEffect(() => {
-    if (window.sessionStorage.getItem(accessTokenKey)) {
-      fetchRepos({ query: { page } });
-    }
-  }, [page]);
+  // useEffect(() => {
+  //   if (window.sessionStorage.getItem(accessTokenKey)) {
+  //     fetchRepos({ query: { page } });
+  //   }
+  // }, [page]);
 
   return (
-    <div className="App">
-      <h1>Repositories List</h1>
-      {loading || reposLoading ? 'Loading...' : null}
-      {
-        githubAccessToken ? (
-          <>
-            <div>
-              {(userRepos || []).map((repo) => (<div key={repo.id}>Repo Name: {repo.name}</div>))}
-            </div>
-            <button disabled={reposLoading || page === 1} onClick={onPrevious}>Previous</button>
-            <button disabled={isEmpty(userRepos) || reposLoading} onClick={onNext}>Next</button>
-          </>
-        ): (
-          <form onSubmit={onSubmit} method="post">
-            <legend>Github Credentials</legend>
-            <fieldset>
-              <label htmlFor="clientId">Client ID</label>
-              <input required id="clientId" name="clientId" onChange={onChange} type="text" value={params.clientId} />
-            </fieldset>
-            <fieldset>
-              <label htmlFor="clientSecret">Client Secret</label>
-              <input required id="clientSecret" name="clientSecret" type="password" onChange={onChange} value={params.clientSecret} />
-            </fieldset>
-            <input type="submit" value="Authroize Github" />
-          </form>
-        )
-      }
-    </div>
+    <Router>
+      <div className="App">
+        <h1>Repositories List</h1>
+        {loading ? 'Loading...' : null}
+        {
+          githubAccessToken ? ( 
+            <>
+              <Navigation />
+              <Switch>
+                <Route path="/wall-feed">
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <ReposWithWallFeed />
+                  </Suspense>
+                </Route>
+                <Route path="/network-policy">
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <ReposWithNetworkPolicy />
+                  </Suspense>
+                </Route>
+                <Route path="/cache-policy">
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <ReposWithCache />
+                  </Suspense>
+                </Route>
+                <Route path="/">
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <ReposWithLazyGet />
+                  </Suspense>
+                </Route>
+              </Switch>
+            </>
+          ): (
+            <form onSubmit={onSubmit} method="post">
+              <legend>Github Credentials</legend>
+              <fieldset>
+                <label htmlFor="clientId">Client ID</label>
+                <input required id="clientId" name="clientId" onChange={onChange} type="text" value={params.clientId} />
+              </fieldset>
+              <fieldset>
+                <label htmlFor="clientSecret">Client Secret</label>
+                <input required id="clientSecret" name="clientSecret" type="password" onChange={onChange} value={params.clientSecret} />
+              </fieldset>
+              <input type="submit" value="Authroize Github" />
+            </form>
+          )
+        }
+      </div>
+    </Router>
   );
 }
 

@@ -5,24 +5,14 @@ import useLazyGet from './useLazyGet';
 const getParams = getOr({}, 'query');
 
 const useGet = (path, options = {}) => {
-  const [fetch, {
-    fetchMore, loading, error, data,
-  }] = useLazyGet(path, {
-    ...options,
-    loading: true,
-  });
+  const [fetch, res] = useLazyGet(path, options);
 
   useEffect(() => {
     fetch(options);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(getParams(options))]);
 
-  return {
-    loading,
-    data,
-    error,
-    fetchMore,
-  };
+  return res;
 };
 
 export default useGet;
