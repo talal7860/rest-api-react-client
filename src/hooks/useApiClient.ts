@@ -1,8 +1,10 @@
 import { useContext, useEffect } from 'react';
-import { merge } from 'lodash/fp';
+import { merge, omitBy, isUndefined } from 'lodash/fp';
 import ApiContext, { ApiContextInterface } from '../ApiContext';
 import Client from '../Client';
 import { cacheKey } from '../util';
+
+const omitUndefined = omitBy(isUndefined);
 
 export interface ApiClient {
   data: ApiBody;
@@ -25,8 +27,8 @@ const useApiClient = () : ApiClient => {
 
   const resetData = () => setValue({});
 
-  const writeData = (path: string, { params, data, method }: WriteDataOptions) => {
-    const key = cacheKey({ params, method, path });
+  const writeData = (path: string, { query, data, method }: WriteDataOptions) => {
+    const key = cacheKey(omitUndefined({ query, method, path }));
     setData({ [key]: data });
   };
 

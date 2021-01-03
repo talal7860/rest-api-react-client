@@ -63,7 +63,8 @@ class Client {
       data = await res.text();
     }
     return {
-      ...res,
+      status: res.status,
+      statusText: res.statusText,
       data,
     };
   }

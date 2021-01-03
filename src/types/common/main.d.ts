@@ -37,7 +37,7 @@ interface ApiResponseOptions {
 declare type ApiResponse = [any, ApiResponseOptions]
 
 interface WriteDataOptions {
-  params: ApiData | ApiQuery;
+  query: ApiData | ApiQuery;
   data: ApiData;
   method: string;
 }
