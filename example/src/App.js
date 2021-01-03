@@ -33,7 +33,6 @@ const App = () => {
     json: true,
     baseUrl: process.env.REACT_APP_ACCESS_TOKEN_EXCHANGE_SERVER,
     onCompleted(res) {
-      debugger;
       if (res.access_token) {
         window.sessionStorage.setItem(accessTokenKey, res.access_token);
       }

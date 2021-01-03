@@ -9,6 +9,7 @@ const ReposWithNetworkPolicy = () => {
     'network-policy': 'cache',
     query: {
       per_page: perPage,
+      page: 1,
     },
   });
 

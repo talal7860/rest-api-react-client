@@ -8,16 +8,19 @@ const omitUndefined = omitBy(isUndefined);
 
 export interface ApiClient {
   data: ApiBody;
+  requests: any;
   resetData(): void;
   writeData(path: string, options: WriteDataOptions): void;
   setData(data: ApiData): void;
   client: Client,
   cacheKey(options: CacheOptions): string;
+  setRequests: any;
 }
 
 const useApiClient = () : ApiClient => {
   const { value, setValue, client } = useContext(ApiContext) as ApiContextInterface;
-  const setData = (data: ApiData) => setValue(merge(value)(data));
+  const setData = (data: ApiData) => setValue({ data: merge(value?.data)(data) });
+  const setRequests = (requests: any) => setValue({ requests: merge(value?.requests)(requests) })
 
   useEffect(() => {
     if (!client) {
@@ -33,11 +36,13 @@ const useApiClient = () : ApiClient => {
   };
 
   return {
-    data: value,
+    data: value?.data,
+    requests: value?.requests,
     cacheKey,
     setData,
     resetData,
     writeData,
+    setRequests,
     client,
   };
 };
