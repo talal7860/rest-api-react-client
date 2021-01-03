@@ -25,11 +25,7 @@ const useRequestHandler = (path: string, requestOptions: RequestOptions = {}): [
   const key = cacheKey(options);
   const cacheData = get(key)(data);
   const response = resData || cacheData;
-  const requestInProgress = requests[key];
-
-  useEffect(() => {
-    console.log('INITIATING');
-  }, []);
+  const requestInProgress = get(key)(requests);
 
   const request = async () => {
     if (canUseCache(options) && !isEmpty(cacheData)) {
@@ -51,18 +47,18 @@ const useRequestHandler = (path: string, requestOptions: RequestOptions = {}): [
         setError({ status: 500, statusText: 'Internal Server Error', data: e.message });
       }
     }
-    setRequests({ [key]: undefined });
-    setLoading(false);
-    setNetworkStatus(NetworkStatus.Completed);
   };
 
   useEffect(() => {
-    if (loading) {
+    if (!cacheData) { return; }
+    if (loading || requestInProgress) {
       setLoading(false);
-      if (options.onCompleted && cacheData) {
+      setRequests({ [key]: false });
+      setNetworkStatus(NetworkStatus.Completed);
+      if (options.onCompleted) {
         options.onCompleted(cacheData);
       }
-    } else if (canUseCache(options) && !isEmpty(cacheData) && options.onCompleted) {
+    } else if (canUseCache(options) && options.onCompleted) {
       options.onCompleted(cacheData);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps

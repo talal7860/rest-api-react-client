@@ -18,17 +18,20 @@ export interface ApiClient {
 }
 
 const useApiClient = () : ApiClient => {
-  const { value, setValue, client } = useContext(ApiContext) as ApiContextInterface;
-  const setData = (data: ApiData) => setValue({ data: merge(value?.data)(data) });
-  const setRequests = (requests: any) => setValue({ requests: merge(value?.requests)(requests) })
+  const context = useContext(ApiContext) as ApiContextInterface;
+  const setData = (data: ApiData) => context.setData(merge(context.data)(data));
+  const setRequests = (requests: any) => context.setRequests(merge(context.requests)(requests))
 
   useEffect(() => {
-    if (!client) {
+    if (!context.client) {
       throw new Error('Client not set, make sure the hooks are called insider the provider');
     }
-  }, [client]);
+  }, [context.client]);
 
-  const resetData = () => setValue({});
+  const resetData = () => {
+    context.setData({});
+    context.setRequests({})
+  };
 
   const writeData = (path: string, { query, data, method }: WriteDataOptions) => {
     const key = cacheKey(omitUndefined({ query, method, path }));
@@ -36,14 +39,14 @@ const useApiClient = () : ApiClient => {
   };
 
   return {
-    data: value?.data,
-    requests: value?.requests,
+    data: context.data,
+    requests: context.requests,
     cacheKey,
     setData,
     resetData,
     writeData,
     setRequests,
-    client,
+    client: context.client,
   };
 };
 
