@@ -18,7 +18,7 @@ const authroizationHeaders = () => {
 }
 
 const client = new Client('https://api.github.com', {
-  headers: () => ({
+  initialHeaders: () => ({
     ...authroizationHeaders(),
     Accept: 'application/vnd.github.v3+json',
     'content-type': 'application/json',

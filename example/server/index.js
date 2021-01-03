@@ -13,7 +13,6 @@ async function build() {
 
 // Declare a route
 fastify.post('/github_access_token', async (request, reply) => {
-  console.log('REQUEST', request.body.client_id);
   const response = await fetch('https://github.com/login/oauth/access_token', {
     body: JSON.stringify(request.body),
     method: 'POST',
@@ -23,7 +22,6 @@ fastify.post('/github_access_token', async (request, reply) => {
     }
   });
   const responseText = await response.json();
-  console.log('RESPONSE', responseText);
   return responseText;
 })
 

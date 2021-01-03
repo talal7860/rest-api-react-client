@@ -14,8 +14,6 @@ const ReposWithNetworkPolicy = lazy(() => import('./pages/ReposWithNetworkPolicy
 const ReposWithCache = lazy(() => import('./pages/ReposWithCache'));
 const ReposWithWallFeed = lazy(() => import('./pages/ReposWithWallFeed'));
 
-console.log('process.env.ACCESS_TOKEN_EXCHANGE_SERVER', process.env.REACT_APP_ACCESS_TOKEN_EXCHANGE_SERVER);
-
 const App = () => {
   const [params, setParams] = useState({
     clientId: window.sessionStorage.getItem('clientId') || '',
@@ -35,31 +33,17 @@ const App = () => {
     json: true,
     baseUrl: process.env.REACT_APP_ACCESS_TOKEN_EXCHANGE_SERVER,
     onCompleted(res) {
+      debugger;
       if (res.access_token) {
         window.sessionStorage.setItem(accessTokenKey, res.access_token);
       }
-      window.location.href = window.location.pathname.replace('callback', '');
+      // window.location.href = window.location.pathname.replace('callback', '');
     },
     onError(err) {
-      console.log(err.data);
       alert(err.data);
-      window.location.href = window.location.pathname.replace('callback', '');
+      // window.location.href = window.location.pathname.replace('callback', '');
     }
   });
-
-  // const [fetchRepos, { loading: reposLoading, data: userRepos }] = useLazyGet('/user/repos', {
-  //   json: true,
-  //   query: {
-  //     per_page: perPage,
-  //   },
-  //   onError(err) {
-  //     alert(err.data)
-  //     if (err.status === 401) {
-  //       window.sessionStorage.clear();
-  //       window.location.reload();
-  //     }
-  //   }
-  // });
 
   const onSubmit = (e) => {
     e.preventDefault();
@@ -86,13 +70,8 @@ const App = () => {
         })
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // useEffect(() => {
-  //   if (window.sessionStorage.getItem(accessTokenKey)) {
-  //     fetchRepos({ query: { page } });
-  //   }
-  // }, [page]);
 
   return (
     <Router>
