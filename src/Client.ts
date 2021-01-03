@@ -1,18 +1,17 @@
 import queryString from 'query-string';
-import { getOr } from 'lodash/fp';
-import { isNetworkError } from './util';
+import { merge } from 'lodash/fp';
+import { isNetworkError, isJsonHeader } from './util';
 import RequestError from './errors/RequestError';
 
-const JSON_ACCEPT_HEADERS = Object.freeze([
-  'application/json',
-  'application/vnd.github.v3+json',
-]);
-
 class Client {
-  constructor(baseUrl, options) {
+  private baseUrl: string;
+  private headers: Headers;
+  private options: RequestOptions;
+  constructor(baseUrl: string, options: RequestOptions) {
     this.baseUrl = baseUrl;
-    this.headers = options.headers;
+    this.headers = new Headers();
     this.options = {
+      ...options,
       mode: 'cors',
       cache: 'no-cache',
       redirect: 'follow',
@@ -22,21 +21,18 @@ class Client {
     this.request = this.request.bind(this);
   }
 
-  getHeaders(json = false) {
-    const headers = this.headers();
+  refreshHeaders(json = false): void {
+    this.headers = new Headers(merge(this.options.initialHeaders(), this.options.headers));
     if (json) {
-      return {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...headers,
-      };
+      this.headers.append('Accept', 'application/json');
+      this.headers.append('Content-Type', 'application/json');
     }
-    return headers;
   }
 
   async request({
-    path, query, body, json, baseUrl, method,
-  }) {
+    path, query, body, baseUrl, method, json,
+  }: RequestOptions): Promise<ClientResponse | RequestError> {
+    this.refreshHeaders(json);
     return new Promise((resolve, reject) => {
       const url = queryString.stringifyUrl({
         url: `${baseUrl || this.baseUrl}${path}`,
@@ -45,11 +41,11 @@ class Client {
       fetch(url, {
         ...this.options,
         method,
-        headers: this.getHeaders(json),
+        headers: this.headers,
         body: JSON.stringify(body),
-      }).then((res) => {
+      }).then(async (res) => {
         if (isNetworkError(res.status)) {
-          reject(new RequestError(this.response(res)));
+          reject(new RequestError(await this.response(res)));
         } else {
           resolve(this.response(res));
         }
@@ -59,17 +55,15 @@ class Client {
     });
   }
 
-  async response(res) {
-    const acceptType = getOr('', 'Accept', this.getHeaders());
+  async response(res: Response): Promise<ClientResponse> {
     let data = null;
-    if (JSON_ACCEPT_HEADERS.includes(acceptType)) {
+    if (isJsonHeader(this.headers)) {
       data = await res.json();
     } else {
       data = await res.text();
     }
     return {
-      status: res.status,
-      statusText: res.statusText,
+      ...res,
       data,
     };
   }

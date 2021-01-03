@@ -1,16 +1,16 @@
 import { useEffect } from 'react';
-import { getOr } from 'lodash/fp';
+import { get } from 'lodash/fp';
 import useLazyGet from './useLazyGet';
 
-const getParams = getOr({}, 'query');
+const getParams = get('query');
 
-const useGet = (path, options = {}) => {
+const useGet = (path: string, options: RequestOptions = {}): ApiResponseOptions => {
   const [fetch, res] = useLazyGet(path, options);
 
   useEffect(() => {
     fetch(options);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(getParams(options))]);
+  }, [JSON.stringify(getParams(options) || {})]);
 
   return res;
 };
