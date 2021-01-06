@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useGet } from 'rest-api-react-client';
 import { perPage } from '../constants';
 
@@ -11,9 +10,6 @@ const useReposWithCache = () => {
       page: 1,
     },
   });
-  useEffect(() => {
-    console.log('RES_DATA_RES_DATA', res.data);
-  }, [res.data]);
 
   return res;
 };
