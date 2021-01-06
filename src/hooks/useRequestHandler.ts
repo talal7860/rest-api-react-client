@@ -14,7 +14,7 @@ const omitUndefined = omitBy(isUndefined);
 
 const useRequestHandler = (path: string, requestOptions: RequestOptions = {}): [any, ApiResponseOptions] => {
   const {
-    data, setData, client,
+    data, setData, client, setRequests, requests,
   } = useApiClient();
   const [networkStatus, setNetworkStatus] = useState(NetworkStatus.Initial);
   const [options, setOptions] = useState(requestOptions);
@@ -25,6 +25,7 @@ const useRequestHandler = (path: string, requestOptions: RequestOptions = {}): [
   const key = cacheKey(options);
   const cacheData = get(key)(data);
   const response = resData || cacheData;
+  const requestInProgress = get(key)(requests);
 
   const request = async () => {
     if (canUseCache(options) && !isEmpty(cacheData)) {
@@ -33,6 +34,10 @@ const useRequestHandler = (path: string, requestOptions: RequestOptions = {}): [
     setNetworkStatus(NetworkStatus.Started);
     setLoading(true);
     try {
+      if (requestInProgress) {
+        return;
+      }
+      setRequests({ [key]: true });
       const res = await client.request(options);
       setData({ [key]: res.data });
     } catch (e) {
@@ -42,17 +47,18 @@ const useRequestHandler = (path: string, requestOptions: RequestOptions = {}): [
         setError({ status: 500, statusText: 'Internal Server Error', data: e.message });
       }
     }
-    setLoading(false);
-    setNetworkStatus(NetworkStatus.Completed);
   };
 
   useEffect(() => {
-    if (loading) {
+    if (!cacheData) { return; }
+    if (loading || requestInProgress) {
       setLoading(false);
-      if (options.onCompleted && cacheData) {
+      setRequests({ [key]: false });
+      setNetworkStatus(NetworkStatus.Completed);
+      if (options.onCompleted) {
         options.onCompleted(cacheData);
       }
-    } else if (canUseCache(options) && !isEmpty(cacheData) && options.onCompleted) {
+    } else if (canUseCache(options) && options.onCompleted) {
       options.onCompleted(cacheData);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps

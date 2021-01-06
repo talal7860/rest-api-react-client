@@ -8,7 +8,7 @@ const JSON_ACCEPT_HEADERS = 'json';
 
 export const cacheKey = (options: any): string => JSON.stringify({
   method: options?.method || 'GET',
-  path: `${options?.baseUrl || ''}${options?.path}`,
+  path: `${options?.baseUrl || ''}${options?.path || ''}`,
   ...pick(['query'])(options),
 });
 

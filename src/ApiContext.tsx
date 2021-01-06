@@ -9,15 +9,18 @@ export interface Props {
 }
 
 export interface ApiContextInterface {
-  value: any;
-  setValue(data: any): void;
+  data: any;
+  setData(data: any): void;
   client: Client,
+  requests: any;
+  setRequests(requests: any): void;
 }
 
 export const ApiProvider = ({ children, client }: Props): React.ReactNode => {
-  const [value, setValue] = React.useState({});
+  const [data, setData] = React.useState({});
+  const [requests, setRequests] = React.useState({});
 
-  const contextValue: ApiContextInterface = { value, setValue, client };
+  const contextValue: ApiContextInterface = { data, setData, client, requests, setRequests };
 
   return (
     <ApiContext.Provider value={contextValue}>

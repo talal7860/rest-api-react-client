@@ -1,42 +1,52 @@
 import { useContext, useEffect } from 'react';
-import { merge } from 'lodash/fp';
+import { merge, omitBy, isUndefined } from 'lodash/fp';
 import ApiContext, { ApiContextInterface } from '../ApiContext';
 import Client from '../Client';
 import { cacheKey } from '../util';
 
+const omitUndefined = omitBy(isUndefined);
+
 export interface ApiClient {
   data: ApiBody;
+  requests: any;
   resetData(): void;
   writeData(path: string, options: WriteDataOptions): void;
   setData(data: ApiData): void;
   client: Client,
   cacheKey(options: CacheOptions): string;
+  setRequests: any;
 }
 
 const useApiClient = () : ApiClient => {
-  const { value, setValue, client } = useContext(ApiContext) as ApiContextInterface;
-  const setData = (data: ApiData) => setValue(merge(value)(data));
+  const context = useContext(ApiContext) as ApiContextInterface;
+  const setData = (data: ApiData) => context.setData(merge(context.data)(data));
+  const setRequests = (requests: any) => context.setRequests(merge(context.requests)(requests))
 
   useEffect(() => {
-    if (!client) {
+    if (!context.client) {
       throw new Error('Client not set, make sure the hooks are called insider the provider');
     }
-  }, [client]);
+  }, [context.client]);
 
-  const resetData = () => setValue({});
+  const resetData = () => {
+    context.setData({});
+    context.setRequests({})
+  };
 
-  const writeData = (path: string, { params, data, method }: WriteDataOptions) => {
-    const key = cacheKey({ params, method, path });
+  const writeData = (path: string, { query, data, method }: WriteDataOptions) => {
+    const key = cacheKey(omitUndefined({ query, method, path }));
     setData({ [key]: data });
   };
 
   return {
-    data: value,
+    data: context.data,
+    requests: context.requests,
     cacheKey,
     setData,
     resetData,
     writeData,
-    client,
+    setRequests,
+    client: context.client,
   };
 };
 

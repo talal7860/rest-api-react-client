@@ -9,6 +9,8 @@ import './App.css';
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { accessTokenKey, callbackUrl } from './constants';
 import Navigation from './components/Navigation';
+import useReposWithCache from './hooks/useReposWithCache';
+
 const ReposWithLazyGet = lazy(() => import('./pages/ReposWithLazyGet'));
 const ReposWithNetworkPolicy = lazy(() => import('./pages/ReposWithNetworkPolicy'));
 const ReposWithCache = lazy(() => import('./pages/ReposWithCache'));
@@ -19,6 +21,7 @@ const App = () => {
     clientId: window.sessionStorage.getItem('clientId') || '',
     clientSecret: window.sessionStorage.getItem('clientSecret') || '',
   });
+  const res = useReposWithCache();
   const githubAccessToken = window.sessionStorage.getItem(accessTokenKey);
   const onChange = (e) => {
     e.preventDefault();
@@ -33,7 +36,6 @@ const App = () => {
     json: true,
     baseUrl: process.env.REACT_APP_ACCESS_TOKEN_EXCHANGE_SERVER,
     onCompleted(res) {
-      debugger;
       if (res.access_token) {
         window.sessionStorage.setItem(accessTokenKey, res.access_token);
       }
@@ -93,14 +95,14 @@ const App = () => {
                     <ReposWithNetworkPolicy />
                   </Suspense>
                 </Route>
-                <Route path="/cache-policy">
+                <Route path="/lazy-load">
                   <Suspense fallback={<div>Loading...</div>}>
-                    <ReposWithCache />
+                    <ReposWithLazyGet />
                   </Suspense>
                 </Route>
                 <Route path="/">
                   <Suspense fallback={<div>Loading...</div>}>
-                    <ReposWithLazyGet />
+                    <ReposWithCache />
                   </Suspense>
                 </Route>
               </Switch>

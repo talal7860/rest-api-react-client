@@ -5,7 +5,10 @@ import useLazyGet from './useLazyGet';
 const getParams = get('query');
 
 const useGet = (path: string, options: RequestOptions = {}): ApiResponseOptions => {
-  const [fetch, res] = useLazyGet(path, options);
+  const [fetch, res] = useLazyGet(path, {
+    ...options,
+    loading: true,
+  });
 
   useEffect(() => {
     fetch(options);
