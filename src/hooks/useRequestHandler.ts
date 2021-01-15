@@ -65,6 +65,7 @@ const useRequestHandler = (path: string, requestOptions: RequestOptions = {}): [
   }, [cacheData]);
 
   useEffect(() => {
+    setLoading(false);
     if (error && options.onError) {
       options.onError(error);
     }
